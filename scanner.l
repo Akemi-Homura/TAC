@@ -131,12 +131,12 @@ void  mkname( char *name )
 
 
         /* If the string exists return with it in yylval */
-
-        if((t = lookup( name )) != NULL )
-        {
-                yylval.symb = t ;
-                return ;
-        }
+        /* don't work with symbtab */
+        /* if((t = lookup( name )) != NULL ) */
+        /* { */
+                /* yylval.symb = t ; */
+                /* return ; */
+        /* } */
 
         /* Unseen before, so make a permanent copy, set up a new symbol table
            node, insert it into the symbol table and assign it to yylval. */
@@ -151,7 +151,7 @@ void  mkname( char *name )
         t->type  = T_UNDEF ;             /* Don't know which node type yet */
         t->TEXT1 = s ;                   /* Text argument */
 
-        insert( t ) ;
+        /* insert( t ) ; */
         yylval.symb = t ;                /* Symbol type in union */
 
 }       /* void  mkname( char *name ) */

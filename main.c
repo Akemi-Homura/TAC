@@ -159,7 +159,7 @@ void  init_vc( int   argc,
 {
         int  i ;                             /* General counter */
 
-        char *ifile ;                        /* Input file */   
+        char *ifile ;                        /* Input file */
         char *ofile ;                        /* Output file */
 
 
@@ -337,7 +337,7 @@ SYMB *mktmp( void )
         yylval.symb->type = T_VAR ;
 
         /* Hang onto this new symbol in tmp, restore yylval.symb and return
-           tmp */ 
+           tmp */
 
         tmp         = yylval.symb ;
         yylval.symb = old_yylval ;
@@ -454,7 +454,7 @@ TAC *mktac( int   op,                    /* Operator */
             SYMB *b,                     /* Operands */
             SYMB *c )
 
-/* Construct a TAC quadruple with the given fields 
+/* Construct a TAC quadruple with the given fields
 
         a := b op c
 
@@ -587,7 +587,7 @@ void  print_instr( TAC *i )
    the code generated for it. The subsidiary routine, "ts()" is used to obtain
    a suitable string representation of the TAC arguments. Note the clumsy
    programming assumption that arguments can be represented in 11 characters.
-*/ 
+*/
 
 
 {

@@ -1505,16 +1505,16 @@ yyreduce:
                                            we get all sorts of problems later
                                            on. */
 
-                                        if( (yyvsp[0].symb)->type != T_VAR )
-                                        {
-                                                error( "Undeclared variable in"
-                                                     " expression" ) ;
+                                        /* if( $1->type != T_VAR ) */
+                                        /* { */
+                                                /* error( "Undeclared variable in" */
+                                                     /* " expression" ) ; */
 
-                                                (yyval.enode) = mkenode( NULL,
-                                                              mkconst( 0 ),
-                                                              NULL ) ;
-                                        }
-                                        else
+                                                /* $$ = mkenode( NULL, */
+                                                              /* mkconst( 0 ), */
+                                                              /* NULL ) ; */
+                                        /* } */
+                                        /* else */
                                                 (yyval.enode) = mkenode( NULL, (yyvsp[0].symb),
                                                               NULL ) ;
                                 }
@@ -2025,8 +2025,8 @@ TAC *do_assign( SYMB  *var,      /* Variable to be assigned */
 
         /* Warn if variable not declared, then build code */
 
-        if( var->type != T_VAR )
-                error( "assignment to non-variable" ) ;
+        /* if( var->type != T_VAR ) */
+                /* error( "assignment to non-variable" ) ; */
 
         code       = mktac( TAC_COPY, var, expr->res, NULL ) ;
         code->prev = expr->tac ;

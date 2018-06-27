@@ -1,8 +1,9 @@
 VAR i
 FUNC  main()
 {
-
+    VAR j
     i := 0
+    j := 1
 
     WHILE 11 - i
     DO
