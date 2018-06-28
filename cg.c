@@ -151,13 +151,17 @@ void build_symb_tab(TAC *tl){
             case TAC_SUB:
             case TAC_MUL:
             case TAC_DIV:
-                if((b = lookup(tls->VB->TEXT1,stab)) == NULL){
-                    fprintf(stderr,"Variable %s has not declared in binary expression",tls->VB->TEXT1);
-                    exit(-1);
+                if((b = lookup(tls->VB->TEXT1,local_symbtab)) == NULL){
+                    if((b = lookup(tls->VB->TEXT1,symbtab)) == NULL) {
+                        fprintf(stderr, "Variable %s has not declared in binary expression", tls->VB->TEXT1);
+                        exit(-1);
+                    }
                 }
-                if((c = lookup(tls->VC->TEXT1,stab)) == NULL){
-                    fprintf(stderr,"Variable %s has not declared in binary expression",tls->VC->TEXT1);
-                    exit(-1);
+                if((c = lookup(tls->VC->TEXT1,local_symbtab)) == NULL){
+                    if((c = lookup(tls->VC->TEXT1,symbtab)) == NULL) {
+                        fprintf(stderr, "Variable %s has not declared in binary expression", tls->VC->TEXT1);
+                        exit(-1);
+                    }
                 }
                 if(b->type != T_VAR){
                     fprintf(stderr,"%s is not declared in binary expression",b->TEXT1);
@@ -171,16 +175,20 @@ void build_symb_tab(TAC *tl){
                 tls->VC = c;
                 break;
             case TAC_NEG:
-                if((c = lookup(tls->VC->TEXT1,stab)) == NULL){
-                    fprintf(stderr,"%s is not declared in neg expression\n",tls->VC->TEXT1);
-                    exit(-1);
+                if((c = lookup(tls->VC->TEXT1,local_symbtab)) == NULL){
+                    if((c = lookup(tls->VC->TEXT1,symbtab)) == NULL) {
+                        fprintf(stderr, "%s is not declared in neg expression\n", tls->VC->TEXT1);
+                        exit(-1);
+                    }
                 }
                 tls->VC = c;
                 break;
             case TAC_COPY:
-                if((a = lookup(tls->VA->TEXT1,stab)) == NULL){
-                    fprintf(stderr,"%s is not declared in assign expression",tls->VA->TEXT1);
-                    exit(-1);
+                if((a = lookup(tls->VA->TEXT1,local_symbtab)) == NULL){
+                    if((a = lookup(tls->VA->TEXT1,symbtab)) == NULL) {
+                        fprintf(stderr, "%s is not declared in assign expression", tls->VA->TEXT1);
+                        exit(-1);
+                    }
                 }
                 tls->VA = a;
                 break;
