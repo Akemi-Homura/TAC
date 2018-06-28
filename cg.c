@@ -129,15 +129,18 @@ void build_symb_tab(TAC *tl){
     for(tls = tl;tls != NULL ; tls = tls->next){
         switch(tls->op){
             case TAC_BEGINFUNC:
+                printf("TAC_BEGINFUNC\n");
                 stab = local_symbtab;
                 for(i=0;i<HASHSIZE;i++){
                     stab[i] = NULL;
                 }
                 break;
             case TAC_ENDFUNC:
+                printf("TAC_ENDFUNC\n");
                 stab = symbtab;
                 break;
             case TAC_VAR:
+                printf("TAC_VAR\n");
                 a = tls->VA;
                 if(lookup(a->TEXT1,stab) != NULL){
                     fprintf(stderr,"Variable %s already declared!",a->TEXT1);
@@ -151,6 +154,7 @@ void build_symb_tab(TAC *tl){
             case TAC_SUB:
             case TAC_MUL:
             case TAC_DIV:
+                printf("binop\n");
                 if((b = lookup(tls->VB->TEXT1,local_symbtab)) == NULL){
                     if((b = lookup(tls->VB->TEXT1,symbtab)) == NULL) {
                         fprintf(stderr, "Variable %s has not declared in binary expression", tls->VB->TEXT1);
@@ -175,6 +179,7 @@ void build_symb_tab(TAC *tl){
                 tls->VC = c;
                 break;
             case TAC_NEG:
+                printf("TAC_NEG\n");
                 if((c = lookup(tls->VC->TEXT1,local_symbtab)) == NULL){
                     if((c = lookup(tls->VC->TEXT1,symbtab)) == NULL) {
                         fprintf(stderr, "%s is not declared in neg expression\n", tls->VC->TEXT1);
@@ -184,6 +189,7 @@ void build_symb_tab(TAC *tl){
                 tls->VC = c;
                 break;
             case TAC_COPY:
+                printf("TAC_COPY\n");
                 if((a = lookup(tls->VA->TEXT1,local_symbtab)) == NULL){
                     if((a = lookup(tls->VA->TEXT1,symbtab)) == NULL) {
                         fprintf(stderr, "%s is not declared in assign expression", tls->VA->TEXT1);
