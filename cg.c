@@ -122,7 +122,7 @@ int   get_areg( SYMB *b,
 void build_symb_tab(TAC *tl){
     TAC *tls;
     SYMB *a,*b,*c;
-    SYMB** stab;
+    SYMB** stab = symbtab;
     int i;
 
     for(tls = tl;tls != NULL ; tls = tls->next){
@@ -171,14 +171,14 @@ void build_symb_tab(TAC *tl){
                 break;
             case TAC_NEG:
                 if((c = lookup(tls->VC->TEXT1,stab)) == NULL){
-                    fprintf(stderr,"%s is not declared in neg expression\n");
+                    fprintf(stderr,"%s is not declared in neg expression\n",tls->VC->TEXT1);
                     exit(-1);
                 }
                 tls->VC = c;
                 break;
             case TAC_COPY:
                 if((a = lookup(tls->VA->TEXT1,stab)) == NULL){
-                    fprintf(stderr,"%s is not declared in assign expression");
+                    fprintf(stderr,"%s is not declared in assign expression",tls->VA->TEXT1);
                     exit(-1);
                 }
                 tls->VA = a;
