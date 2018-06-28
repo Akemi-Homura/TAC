@@ -200,6 +200,7 @@ void build_symb_tab(TAC *tl){
                 break;
 
         }
+        fflush(stdout);
     }
 }
 
