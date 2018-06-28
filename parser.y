@@ -513,11 +513,11 @@ TAC *declare_var( SYMB *var )
    scope can be checked. */
 
 {
-        if( var->type != T_UNDEF )
-        {
-                error( "variable already declared" ) ;
-                return NULL ;
-        }
+        /* if( var->type != T_UNDEF ) */
+        /* { */
+                /* error( "variable already declared" ) ; */
+                /* return NULL ; */
+        /* } */
 
         var->type  = T_VAR ;
         var->ADDR2 = -1 ;                /* Unset address */
@@ -687,6 +687,7 @@ ENODE *do_fnap( SYMB  *func,             /* Function to call */
    instructions, since arg instructions must appear consecutively. */
 
 {
+
         ENODE  *alt ;                    /* For counting args */
         SYMB   *res ;                    /* Where function result will go */
         TAC    *code ;                   /* Resulting code */

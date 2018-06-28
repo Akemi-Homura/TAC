@@ -29,7 +29,7 @@ LEXOUT  = lex.yy.c
 
 # Specify some flags
 
-CFLAGS    = -g -ansi -pedantic
+CFLAGS    = -g3 -ansi -pedantic
 YACCFLAGS = -d -y
 LEXFLAGS  = 
 LDFLAGS   = -ly -lfl
