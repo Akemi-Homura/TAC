@@ -117,6 +117,7 @@ void  insert_desc( int   r,
 int   get_rreg( SYMB *c ) ;
 int   get_areg( SYMB *b,
                int   cr ) ;
+void build_symb_tab(TAC* tl) ;
 
 
 void build_symb_tab(TAC *tl){
