@@ -751,7 +751,7 @@ char *ts( SYMB *s,                       /* Symbol to translate */
 
                 /* Unknown arg type */
 
-                error( "unknown TAC arg type" ) ;
+                fprintf(stderr, "unknown TAC arg type %d\n", s->type) ;
                 return "?" ;
         }
 

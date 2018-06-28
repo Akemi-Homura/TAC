@@ -2,14 +2,14 @@
 *******************************************************************************
 
 
-                                CCCCC    GGGGGG 
+                                CCCCC    GGGGGG
                                CCCCCCC  GGGGGGGG
-                              CC        GG      
+                              CC        GG
                               CC        GG  GGGG
                               CC        GG    GG
                               CC        GG    GG
                                CCCCCCC  GGGGGGGG
-                                CCCCC    GGGGGG 
+                                CCCCC    GGGGGG
 
 
 *******************************************************************************
@@ -119,28 +119,37 @@ int   get_areg( SYMB *b,
                int   cr ) ;
 void build_symb_tab(TAC* tl) ;
 
+void find_var_in_expression(SYMB** var);
+
+void find_var_in_expression(SYMB** var){
+    SYMB *t;
+    if((*var)->type == T_INT || (*var)->type == T_VAR) return;
+    if((t = lookup( (*var)->TEXT1, local_symbtab )) == NULL ){
+        if((t = lookup( (*var)->TEXT1, symbtab)) == NULL){
+            fprintf(stderr,"variable %s has not declared in expression\n", (*var)->TEXT1);
+        }
+    }
+    (*var) = t;
+}
 
 void build_symb_tab(TAC *tl){
-    TAC *tls;
-    SYMB *a,*b,*c;
+    TAC *tls = tl;
+    SYMB *a;
     SYMB** stab = symbtab;
     int i;
 
-    for(tls = tl;tls != NULL ; tls = tls->next){
+    for(;tls != NULL ; tls = tls->next){
         switch(tls->op){
             case TAC_BEGINFUNC:
-                printf("TAC_BEGINFUNC\n");
                 stab = local_symbtab;
                 for(i=0;i<HASHSIZE;i++){
                     stab[i] = NULL;
                 }
                 break;
             case TAC_ENDFUNC:
-                printf("TAC_ENDFUNC\n");
                 stab = symbtab;
                 break;
             case TAC_VAR:
-                printf("TAC_VAR\n");
                 a = tls->VA;
                 if(lookup(a->TEXT1,stab) != NULL){
                     fprintf(stderr,"Variable %s already declared!",a->TEXT1);
@@ -154,51 +163,25 @@ void build_symb_tab(TAC *tl){
             case TAC_SUB:
             case TAC_MUL:
             case TAC_DIV:
-                printf("binop\n");
-                if((b = lookup(tls->VB->TEXT1,local_symbtab)) == NULL){
-                    if((b = lookup(tls->VB->TEXT1,symbtab)) == NULL) {
-                        fprintf(stderr, "Variable %s has not declared in binary expression", tls->VB->TEXT1);
-                        exit(-1);
-                    }
-                }
-                if((c = lookup(tls->VC->TEXT1,local_symbtab)) == NULL){
-                    if((c = lookup(tls->VC->TEXT1,symbtab)) == NULL) {
-                        fprintf(stderr, "Variable %s has not declared in binary expression", tls->VC->TEXT1);
-                        exit(-1);
-                    }
-                }
-                if(b->type != T_VAR){
-                    fprintf(stderr,"%s is not declared in binary expression",b->TEXT1);
-                    exit(-1);
-                }
-                if(c->type != T_VAR){
-                    fprintf(stderr,"%s is not declared in binary expression",c->TEXT1);
-                    exit(-1);
-                }
-                tls->VB = b;
-                tls->VC = c;
+                find_var_in_expression(&tls->VB);
+                find_var_in_expression(&tls->VC);
                 break;
             case TAC_NEG:
-                printf("TAC_NEG\n");
-                if((c = lookup(tls->VC->TEXT1,local_symbtab)) == NULL){
-                    if((c = lookup(tls->VC->TEXT1,symbtab)) == NULL) {
-                        fprintf(stderr, "%s is not declared in neg expression\n", tls->VC->TEXT1);
-                        exit(-1);
-                    }
-                }
-                tls->VC = c;
+                find_var_in_expression(&tls->VC);
                 break;
             case TAC_COPY:
-                printf("TAC_COPY\n");
                 if((a = lookup(tls->VA->TEXT1,local_symbtab)) == NULL){
                     if((a = lookup(tls->VA->TEXT1,symbtab)) == NULL) {
-                        fprintf(stderr, "%s is not declared in assign expression", tls->VA->TEXT1);
+                        fprintf(stderr, "%s is not declared in assignment", tls->VA->TEXT1);
                         exit(-1);
                     }
                 }
                 tls->VA = a;
                 break;
-
+            case TAC_UNDEF:
+                error("undefined tac\n");
+                exit(-1);
+                break;
         }
         fflush(stdout);
     }
@@ -560,9 +543,9 @@ void  cg_return( SYMB *a )
                 load_reg( R_RES, a ) ;
         }
 
-        printf( "       LDI  %u(R%u),R%u\n", PC_OFF, R_P, R_CALL ) ;    
-        printf( "       LDI  %u(R%u),R%u\n", P_OFF, R_P, R_P ) ;        
-        printf( "       BAL  R%u,R%u\n", R_CALL, R_RET ) ;      
+        printf( "       LDI  %u(R%u),R%u\n", PC_OFF, R_P, R_CALL ) ;
+        printf( "       LDI  %u(R%u),R%u\n", P_OFF, R_P, R_P ) ;
+        printf( "       BAL  R%u,R%u\n", R_CALL, R_RET ) ;
 
 }       /* void  cg_return( SYMB *a ) */
 
@@ -719,7 +702,7 @@ void  load_reg( int   r,                 /* Register to be loaded */
 
         /* Look for a register */
 
-        for( s = 0 ; s < R_MAX ; s++ )  
+        for( s = 0 ; s < R_MAX ; s++ )
                 if( rdesc[s].name == n )
                 {
                         printf( "       LDR  R%u,R%u\n", s, r ) ;
@@ -795,7 +778,7 @@ void  insert_desc( int   r,
         /* We should not find any duplicates, but check, just in case. */
 
         for( or++ ; or < R_MAX ; or++ )
-        
+
                 if( rdesc[or].name == n )
                 {
                         error( "Duplicate slave found" ) ;
@@ -836,7 +819,7 @@ int  get_rreg( SYMB *c )
    c is not in the given result register we load it. Clearly we cannot use R0
    for this purpose, even if c is constant zero. We also avoid using the
    reserved registers. Note that since c may be the same as b we must update
-   the address and register descriptors. */ 
+   the address and register descriptors. */
 
 {
         int        r ;                   /* Register for counting */
@@ -879,7 +862,7 @@ int  get_areg( SYMB *b,
       a := b op c
 
    This must hold b and will not be overwritten. If b is already in a register
-   we use that, otherwise we chose in order of preference from 
+   we use that, otherwise we chose in order of preference from
 
       An empty register
       An unmodified register
