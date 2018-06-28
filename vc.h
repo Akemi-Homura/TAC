@@ -204,6 +204,7 @@ typedef struct enode                     /* Parser expression */
    used to assign unique labels of the form "Lnnn". */
 
 extern SYMB *symbtab[HASHSIZE] ;         /* Symbol table */
+extern SYMB *local_symbtab[HASHSIZE] ;
 extern TAC  *library[LIB_MAX] ;          /* Entries for library routines */
 extern int   next_tmp ;                  /* Count of temporaries */
 extern int   next_label ;                /* Count of labels */
@@ -220,8 +221,8 @@ extern TAC   *mktac( int   op,
                      SYMB *c ) ;
 extern TAC   *join_tac( TAC *c1,
                         TAC *c2 ) ;
-extern void   insert( SYMB *s ) ;
-extern SYMB  *lookup( char *s ) ;
+extern void insert(SYMB *s, SYMB **symbtab);
+extern SYMB *lookup(char *s, SYMB **symbtab);
 extern SYMB  *get_symb( void ) ;
 extern void   free_symb( SYMB *s ) ;
 extern ENODE *get_enode( void ) ;

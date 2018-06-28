@@ -119,6 +119,77 @@ int   get_areg( SYMB *b,
                int   cr ) ;
 
 
+void build_symb_tab(TAC *tl){
+    TAC *tls;
+    SYMB *a,*b,*c;
+    SYMB** stab;
+    int i;
+
+    for(tls = tl;tls != NULL ; tls = tls->next){
+        switch(tls->op){
+            case TAC_BEGINFUNC:
+                stab = local_symbtab;
+                for(i=0;i<HASHSIZE;i++){
+                    stab[i] = NULL;
+                }
+                break;
+            case TAC_ENDFUNC:
+                stab = symbtab;
+                break;
+            case TAC_VAR:
+                a = tls->VA;
+                if(lookup(a->TEXT1,stab) != NULL){
+                    fprintf(stderr,"Variable %s already declared!",a->TEXT1);
+                    exit(-1);
+                }
+                a->type = T_VAR;
+                a->ADDR2 = -1;
+                insert(a, stab);
+                break;
+            case TAC_ADD:
+            case TAC_SUB:
+            case TAC_MUL:
+            case TAC_DIV:
+                if((b = lookup(tls->VB->TEXT1,stab)) == NULL){
+                    fprintf(stderr,"Variable %s has not declared in binary expression",tls->VB->TEXT1);
+                    exit(-1);
+                }
+                if((c = lookup(tls->VC->TEXT1,stab)) == NULL){
+                    fprintf(stderr,"Variable %s has not declared in binary expression",tls->VC->TEXT1);
+                    exit(-1);
+                }
+                if(b->type != T_VAR){
+                    fprintf(stderr,"%s is not declared in binary expression",b->TEXT1);
+                    exit(-1);
+                }
+                if(c->type != T_VAR){
+                    fprintf(stderr,"%s is not declared in binary expression",c->TEXT1);
+                    exit(-1);
+                }
+                tls->VB = b;
+                tls->VC = c;
+                break;
+            case TAC_NEG:
+                if((c = lookup(tls->VC->TEXT1,stab)) == NULL){
+                    fprintf(stderr,"%s is not declared in neg expression\n");
+                    exit(-1);
+                }
+                tls->VC = c;
+                break;
+            case TAC_COPY:
+                if((a = lookup(tls->VA->TEXT1,stab)) == NULL){
+                    fprintf(stderr,"%s is not declared in assign expression");
+                    exit(-1);
+                }
+                tls->VA = a;
+                break;
+            case TAC_CALL:
+
+        }
+    }
+}
+
+
 void  cg( TAC *tl )
 
 /* The code generator is initialised by "cg_init()", finding the start of the
@@ -138,6 +209,7 @@ void  cg( TAC *tl )
 
 {
         TAC *tls = init_cg( tl ) ;              /* Start of TAC */
+        build_symb_tab(tls);
 
         for( ; tls != NULL ; tls = tls->next )  /* Instructions in turn */
         {
@@ -522,6 +594,7 @@ void  cg_strings( void )
                 for( sl = symbtab[i] ; sl != NULL ; sl = sl->next )
                         if( sl->type == T_TEXT )
                                 cg_str( sl ) ;
+
         }
 
         printf( "L0:\n" ) ;

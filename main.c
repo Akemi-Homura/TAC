@@ -64,6 +64,7 @@ extern TAC *program_tac ;
    have been declared external in the header file, and are defined here. */
 
 SYMB  *symbtab[HASHSIZE] ;               /* Symbol table */
+SYMB  *local_symbtab[HASHSIZE] ;
 TAC   *library[LIB_MAX] ;                /* Entries for library routines */
 int    next_tmp ;                        /* Count of temporaries */
 int    next_label ;                      /* Count of labels */
@@ -107,9 +108,9 @@ TAC   *mktac( int   op,
               SYMB *c ) ;
 TAC   *join_tac( TAC *c1,
                  TAC *c2 ) ;
-void   insert( SYMB *s ) ;
+void insert(SYMB *s, SYMB **symbtab);
 int    hash( char *s ) ;
-SYMB  *lookup( char *s ) ;
+SYMB *lookup(char *s, SYMB **symbtab);
 void   print_instr( TAC *i ) ;
 char  *ts( SYMB *s,
            char *str ) ;
@@ -521,7 +522,7 @@ TAC *join_tac( TAC *c1,
    in chapter 5. */
 
 
-void  insert( SYMB *s )
+void insert(SYMB *s, SYMB **symbtab)
 
 /* Insert a new symbol in the symbol table. We hash on a text first argument */
 
@@ -558,7 +559,7 @@ int  hash( char *s )
 }       /* int  hash ( char *s ) */
 
 
-SYMB *lookup( char *s )
+SYMB *lookup(char *s, SYMB **symbtab)
 
 /* Lookup a name in the hashtable. Return NULL if the name is not found. */
 
