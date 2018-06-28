@@ -183,7 +183,6 @@ void build_symb_tab(TAC *tl){
                 }
                 tls->VA = a;
                 break;
-            case TAC_CALL:
 
         }
     }
