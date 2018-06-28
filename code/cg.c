@@ -76,73 +76,93 @@
 
 struct                                   /* Reg descriptor */
 {
-        struct symb *name ;              /* Thing in reg */
-        int          modified ;          /* If needs spilling */
-}    rdesc[R_MAX] ;
-int  tos ;                               /* Top of stack */
-int  next_arg ;                          /* Next argument to load */
+    struct symb *name;              /* Thing in reg */
+    int modified;          /* If needs spilling */
+} rdesc[R_MAX];
+int tos;                               /* Top of stack */
+int next_arg;                          /* Next argument to load */
 
 /* These are the prototypes of routines defined here. Routines to translate TAC
    instructions generally have the form "cg_xxx()" where xxx is the name of a
    TAC instruction of group of TAC instructions. */
 
-void  cg( TAC *tl ) ;
-TAC  *init_cg( TAC *tl ) ;
-void  cg_instr( TAC *c ) ;
-void  cg_bin( char *op,
-              SYMB *a,
-              SYMB *b,
-              SYMB *c ) ;
-void  cg_copy( SYMB *a,
-               SYMB *b ) ;
-void  cg_cond( char *op,
-               SYMB *a,
-               int   l ) ;
-void  cg_arg( SYMB *a ) ;
-void  cg_call( int   f,
-               SYMB *res ) ;
-void  cg_return( SYMB *a ) ;
-void  cg_sys( char *fn ) ;
-void  cg_strings( void ) ;
-void  cg_str( SYMB *s ) ;
-void  flush_all( void ) ;
-void  spill_all( void ) ;
-void  spill_one( int  r ) ;
-void  load_reg( int   r,
-                SYMB *n ) ;
-void  clear_desc( int   r ) ;
-void  insert_desc( int   r,
-                   SYMB *n,
-                   int   mod ) ;
-int   get_rreg( SYMB *c ) ;
-int   get_areg( SYMB *b,
-               int   cr ) ;
-void build_symb_tab(TAC* tl) ;
+void cg(TAC *tl);
 
-void find_var_in_expression(SYMB** var);
+TAC *init_cg(TAC *tl);
 
-void find_var_in_expression(SYMB** var){
+void cg_instr(TAC *c);
+
+void cg_bin(char *op,
+            SYMB *a,
+            SYMB *b,
+            SYMB *c);
+
+void cg_copy(SYMB *a,
+             SYMB *b);
+
+void cg_cond(char *op,
+             SYMB *a,
+             int l);
+
+void cg_arg(SYMB *a);
+
+void cg_call(int f,
+             SYMB *res);
+
+void cg_return(SYMB *a);
+
+void cg_sys(char *fn);
+
+void cg_strings(void);
+
+void cg_str(SYMB *s);
+
+void flush_all(void);
+
+void spill_all(void);
+
+void spill_one(int r);
+
+void load_reg(int r,
+              SYMB *n);
+
+void clear_desc(int r);
+
+void insert_desc(int r,
+                 SYMB *n,
+                 int mod);
+
+int get_rreg(SYMB *c);
+
+int get_areg(SYMB *b,
+             int cr);
+
+void build_symb_tab(TAC *tl);
+
+void find_var_in_expression(SYMB **var);
+
+void find_var_in_expression(SYMB **var) {
     SYMB *t;
-    if((*var)->type == T_INT || (*var)->type == T_VAR) return;
-    if((t = lookup( (*var)->TEXT1, local_symbtab )) == NULL ){
-        if((t = lookup( (*var)->TEXT1, symbtab)) == NULL){
-            fprintf(stderr,"variable %s has not declared in expression\n", (*var)->TEXT1);
+    if ((*var)->type == T_INT || (*var)->type == T_VAR) return;
+    if ((t = lookup((*var)->TEXT1, local_symbtab)) == NULL) {
+        if ((t = lookup((*var)->TEXT1, symbtab)) == NULL) {
+            fprintf(stderr, "variable %s has not declared in expression\n", (*var)->TEXT1);
         }
     }
     (*var) = t;
 }
 
-void build_symb_tab(TAC *tl){
+void build_symb_tab(TAC *tl) {
     TAC *tls = tl;
     SYMB *a;
-    SYMB** stab = symbtab;
+    SYMB **stab = symbtab;
     int i;
 
-    for(;tls != NULL ; tls = tls->next){
-        switch(tls->op){
+    for (; tls != NULL; tls = tls->next) {
+        switch (tls->op) {
             case TAC_BEGINFUNC:
                 stab = local_symbtab;
-                for(i=0;i<HASHSIZE;i++){
+                for (i = 0; i < HASHSIZE; i++) {
                     stab[i] = NULL;
                 }
                 break;
@@ -151,8 +171,8 @@ void build_symb_tab(TAC *tl){
                 break;
             case TAC_VAR:
                 a = tls->VA;
-                if(lookup(a->TEXT1,stab) != NULL){
-                    fprintf(stderr,"Variable %s already declared!",a->TEXT1);
+                if (lookup(a->TEXT1, stab) != NULL) {
+                    fprintf(stderr, "Variable %s already declared!", a->TEXT1);
                     exit(-1);
                 }
                 a->type = T_VAR;
@@ -170,8 +190,8 @@ void build_symb_tab(TAC *tl){
                 find_var_in_expression(&tls->VC);
                 break;
             case TAC_COPY:
-                if((a = lookup(tls->VA->TEXT1,local_symbtab)) == NULL){
-                    if((a = lookup(tls->VA->TEXT1,symbtab)) == NULL) {
+                if ((a = lookup(tls->VA->TEXT1, local_symbtab)) == NULL) {
+                    if ((a = lookup(tls->VA->TEXT1, symbtab)) == NULL) {
                         fprintf(stderr, "%s is not declared in assignment", tls->VA->TEXT1);
                         exit(-1);
                     }
@@ -182,13 +202,16 @@ void build_symb_tab(TAC *tl){
                 error("undefined tac\n");
                 exit(-1);
                 break;
+            case TAC_ARG:
+                find_var_in_expression(&tls->VA);
+                break;
         }
         fflush(stdout);
     }
 }
 
 
-void  cg( TAC *tl )
+void cg(TAC *tl)
 
 /* The code generator is initialised by "cg_init()", finding the start of the
    TAC list in the process (since the syntax analysis phase has given us the
@@ -206,18 +229,18 @@ void  cg( TAC *tl )
    for greater flexibility. */
 
 {
-        TAC *tls = init_cg( tl ) ;              /* Start of TAC */
-        build_symb_tab(tls);
+    TAC *tls = init_cg(tl);              /* Start of TAC */
+    build_symb_tab(tls);
 
-        for( ; tls != NULL ; tls = tls->next )  /* Instructions in turn */
-        {
-                print_instr( tls ) ;
-        }
+    for (; tls != NULL; tls = tls->next)  /* Instructions in turn */
+    {
+        print_instr(tls);
+    }
 
 }       /* void  cg( TAC *tl ) */
 
 
-TAC *init_cg( TAC *tl )
+TAC *init_cg(TAC *tl)
 
 /* Initialisation involves clearing the register descriptors (apart from zero
    in R0), setting the top of stack and next_arg indices and clearing the free
@@ -225,36 +248,35 @@ TAC *init_cg( TAC *tl )
    TAC list, setting .cb next fields in the TAC as we do so. */
 
 {
-        int  r ;
-        TAC *c ;                         /* Current TAC instruction */
-        TAC *p ;                         /* Previous TAC instruction */
+    int r;
+    TAC *c;                         /* Current TAC instruction */
+    TAC *p;                         /* Previous TAC instruction */
 
-        for( r = 0 ; r < R_MAX ; r++ )
-                rdesc[r].name = NULL ;
+    for (r = 0; r < R_MAX; r++)
+        rdesc[r].name = NULL;
 
-        insert_desc( 0, mkconst( 0 ), UNMODIFIED ) ;     /* R0 holds 0 */
+    insert_desc(0, mkconst(0), UNMODIFIED);     /* R0 holds 0 */
 
-        tos      = VAR_OFF ;             /* TOS allows space for link info */
-        next_arg = 0 ;                   /* Next arg to load */
+    tos = VAR_OFF;             /* TOS allows space for link info */
+    next_arg = 0;                   /* Next arg to load */
 
-        /* Tidy up and reverse the code list */
+    /* Tidy up and reverse the code list */
 
-        c = NULL ;                       /* No current */
-        p = tl ;                         /* Preceding to do */
+    c = NULL;                       /* No current */
+    p = tl;                         /* Preceding to do */
 
-        while( p != NULL )
-        {
-                p->next = c ;            /* Set the next field */
-                c       = p ;            /* Step on */
-                p       = p->prev ;
-        }
+    while (p != NULL) {
+        p->next = c;            /* Set the next field */
+        c = p;            /* Step on */
+        p = p->prev;
+    }
 
-        return c ;
+    return c;
 
 }       /* TAC *init_cg( TAC *tl ) */
 
 
-void  cg_instr( TAC *c )
+void cg_instr(TAC *c)
 
 /* Generate code for a single TAC instruction. This is just a switch on all
    possible TAC instructions. Hopefully if we have written the front end
@@ -262,126 +284,125 @@ void  cg_instr( TAC *c )
    call a subsidiary routine "cg_xxx()" to do the code generation. */
 
 {
-        switch( c->op )
-        {
+    switch (c->op) {
         case TAC_UNDEF:
 
-                error( "cannot translate TAC_UNDEF" ) ;
-                return ;
+            error("cannot translate TAC_UNDEF");
+            return;
 
         case TAC_ADD:
 
-                cg_bin( "ADD", c->VA, c->VB, c->VC ) ;
-                return ;
+            cg_bin("ADD", c->VA, c->VB, c->VC);
+            return;
 
         case TAC_SUB:
 
-                cg_bin( "SUB", c->VA, c->VB, c->VC ) ;
-                return ;
+            cg_bin("SUB", c->VA, c->VB, c->VC);
+            return;
 
         case TAC_MUL:
 
-                cg_bin( "MUL", c->VA, c->VB, c->VC ) ;
-                return ;
+            cg_bin("MUL", c->VA, c->VB, c->VC);
+            return;
 
         case TAC_DIV:
 
-                cg_bin( "DIV", c->VA, c->VB, c->VC ) ;
-                return ;
+            cg_bin("DIV", c->VA, c->VB, c->VC);
+            return;
 
         case TAC_NEG:
 
-                cg_bin( "SUB", c->VA, mkconst( 0 ), c->VB ) ;
-                return ;
+            cg_bin("SUB", c->VA, mkconst(0), c->VB);
+            return;
 
         case TAC_COPY:
 
-                cg_copy( c->VA, c->VB ) ;
-                return ;
+            cg_copy(c->VA, c->VB);
+            return;
 
         case TAC_GOTO:
 
-                cg_cond( "BRA", NULL, c->LA->VA->VAL1 ) ;
-                return ;
+            cg_cond("BRA", NULL, c->LA->VA->VAL1);
+            return;
 
         case TAC_IFZ:
 
-                cg_cond( "BZE", c->VB, c->LA->VA->VAL1 ) ;
-                return ;
+            cg_cond("BZE", c->VB, c->LA->VA->VAL1);
+            return;
 
         case TAC_IFNZ:
 
-                cg_cond( "BNZ", c->VB, c->LA->VA->VAL1 ) ;
-                return ;
+            cg_cond("BNZ", c->VB, c->LA->VA->VAL1);
+            return;
 
         case TAC_ARG:
 
-                cg_arg( c->VA ) ;
-                return ;
+            cg_arg(c->VA);
+            return;
 
         case TAC_CALL:
 
-                cg_call( c->LB->VA->VAL1, c->VA ) ;
-                return ;
+            cg_call(c->LB->VA->VAL1, c->VA);
+            return;
 
         case TAC_RETURN:
 
-                cg_return( c->VA ) ;
-                return ;
+            cg_return(c->VA);
+            return;
 
         case TAC_LABEL:
 
-                /* We generate an appropriate label. Note that we must flush
-                   the register descriptor, since control may arrive at this
-                   label from other points in the code. */
+            /* We generate an appropriate label. Note that we must flush
+               the register descriptor, since control may arrive at this
+               label from other points in the code. */
 
-                flush_all() ;
-                printf( "L%u:\n", c->VA->VAL1 ) ;
-                return ;
+            flush_all();
+            printf("L%u:\n", c->VA->VAL1);
+            return;
 
         case TAC_VAR:
 
-                /* Allocate 4 bytes for this variable to hold an integer on the
-                   current top of stack */
+            /* Allocate 4 bytes for this variable to hold an integer on the
+               current top of stack */
 
-                c->VA->ADDR2 = tos ;
-                tos += 4 ;
-                return ;
+            c->VA->ADDR2 = tos;
+            tos += 4;
+            return;
 
         case TAC_BEGINFUNC:
 
-                /* At the start of a function we must copy the return address
-                   which will be in R_RET onto the stack. We reset the top of
-                   stack, since it is currently empty apart from the link
-                   information. */
+            /* At the start of a function we must copy the return address
+               which will be in R_RET onto the stack. We reset the top of
+               stack, since it is currently empty apart from the link
+               information. */
 
-                tos = VAR_OFF ;
-                printf( "       STI  R%u,%u(R%u)\n", R_RET, PC_OFF, R_P ) ;
-                return ;
+            tos = VAR_OFF;
+            printf("       STI  R%u,%u(R%u)\n", R_RET, PC_OFF, R_P);
+            return;
 
         case TAC_ENDFUNC:
 
-                /* At the end of the function we put in an implicit return
-                   instruction. */
+            /* At the end of the function we put in an implicit return
+               instruction. */
 
-                cg_return( NULL ) ;
-                return ;
+            cg_return(NULL);
+            return;
 
         default:
 
-                /* Don't know what this one is */
+            /* Don't know what this one is */
 
-                error( "unknown TAC opcode to translate" ) ;
-                return ;
-        }
+            error("unknown TAC opcode to translate");
+            return;
+    }
 
 }       /* void  cg_instr( TAC *c ) */
 
 
-void  cg_bin( char *op,                  /* Opcode to use */
-              SYMB *a,                   /* Result */
-              SYMB *b,                   /* Operands */
-              SYMB *c )
+void cg_bin(char *op,                  /* Opcode to use */
+            SYMB *a,                   /* Result */
+            SYMB *b,                   /* Operands */
+            SYMB *c)
 
 /* Generate code for a binary operator
 
@@ -395,15 +416,15 @@ void  cg_bin( char *op,                  /* Opcode to use */
    descriptor appropriately. */
 
 {
-        int  cr = get_rreg( c ) ;        /* Result register */
-        int  br = get_areg( b, cr ) ;    /* Second argument register */
+    int cr = get_rreg(c);        /* Result register */
+    int br = get_areg(b, cr);    /* Second argument register */
 
-        printf( "       %s  R%u,R%u\n", op, br, cr ) ;
+    printf("       %s  R%u,R%u\n", op, br, cr);
 
-        /* Delete c from the descriptors and insert a */
+    /* Delete c from the descriptors and insert a */
 
-        clear_desc( cr ) ;
-        insert_desc( cr, a, MODIFIED ) ;
+    clear_desc(cr);
+    insert_desc(cr, a, MODIFIED);
 
 }       /* void  cg_bin( char *op,
                          SYMB *a,
@@ -411,8 +432,8 @@ void  cg_bin( char *op,                  /* Opcode to use */
                          SYMB *c ) */
 
 
-void  cg_copy( SYMB *a,
-               SYMB *b )
+void cg_copy(SYMB *a,
+             SYMB *b)
 
 /* Generate code for a copy instruction
 
@@ -423,17 +444,17 @@ void  cg_copy( SYMB *a,
    spilled or flushed. */
 
 {
-        int  br = get_rreg( b ) ;        /* Load b into a register */
+    int br = get_rreg(b);        /* Load b into a register */
 
-        insert_desc( br, a, MODIFIED ) ; /* Indicate a is there */
+    insert_desc(br, a, MODIFIED); /* Indicate a is there */
 
 }       /* void  cg_copy( SYMB *a,
                           SYMB *b ) */
 
 
-void  cg_cond( char *op,
-               SYMB *a,                  /* Condition */
-               int   l )                 /* Branch destination */
+void cg_cond(char *op,
+             SYMB *a,                  /* Condition */
+             int l)                 /* Branch destination */
 
 /* Generate for "goto", "ifz" or "ifnz". We must spill registers before the
    branch. In the case of unconditional goto we have no condition, and so "b"
@@ -442,37 +463,36 @@ void  cg_cond( char *op,
    to keep track of what is in the status register, so saving this load. */
 
 {
-        spill_all() ;
+    spill_all();
 
-        if( a != NULL )
-        {
-                int  r ;
+    if (a != NULL) {
+        int r;
 
-                for( r = R_GEN ; r < R_MAX ; r++ )   /* Is it in reg? */
-                        if( rdesc[r].name == a )
-                                break ;
+        for (r = R_GEN; r < R_MAX; r++)   /* Is it in reg? */
+            if (rdesc[r].name == a)
+                break;
 
-                /* Bug fix 3/5/91 to reload into the existing register
-                   correctly. */
+        /* Bug fix 3/5/91 to reload into the existing register
+           correctly. */
 
-                if( r < R_MAX )
+        if (r < R_MAX)
 
-                        /* Reload into existing reg. Don't use load_reg, since
-                           it updates rdesc */
+            /* Reload into existing reg. Don't use load_reg, since
+               it updates rdesc */
 
-                        printf( "       LDR  R%u,R%u\n", r, r ) ;
-                else
-                        (void)get_rreg( a ) ;  /* Load into new register */
-        }
+            printf("       LDR  R%u,R%u\n", r, r);
+        else
+            (void) get_rreg(a);  /* Load into new register */
+    }
 
-        printf( "       %s  L%u\n", op, l ) ;   /* Branch */
+    printf("       %s  L%u\n", op, l);   /* Branch */
 
 }       /* void  cg_cond( char *op,
                           SYMB *a,
                           int   l ) */
 
 
-void  cg_arg( SYMB *a )
+void cg_arg(SYMB *a)
 
 /* Generate for an ARG instruction. We load the argument into a register, and
    then write it onto the new stack frame, which is 2 words past the current
@@ -481,17 +501,17 @@ void  cg_arg( SYMB *a )
    instructions or CALL instructions. */
 
 {
-        int  r  = get_rreg( a ) ;
+    int r = get_rreg(a);
 
-        printf( "       STI  R%u,%u(R%u)\n", r, tos + VAR_OFF + next_arg,
-                R_P ) ;
-        next_arg += 4 ;
+    printf("       STI  R%u,%u(R%u)\n", r, tos + VAR_OFF + next_arg,
+           R_P);
+    next_arg += 4;
 
 }       /* void  cg_arg( SYMB *a ) */
 
 
-void  cg_call( int   f,
-               SYMB *res )
+void cg_call(int f,
+             SYMB *res)
 
 /* The standard call sequence is
 
@@ -510,21 +530,21 @@ void  cg_call( int   f,
    since we know we have finished all the arguments now. */
 
 {
-        flush_all() ;
-        next_arg = 0 ;
-        printf( "       LDA  L%u,R%u\n", f, R_CALL ) ;
-        printf( "       STI  R%u,%u(R%u)\n", R_P, tos, R_P ) ;
-        printf( "       LDA  %u(R%u),R%u\n", tos, R_P, R_P ) ;
-        printf( "       BAL  R%u,R%u\n", R_CALL, R_RET ) ;
+    flush_all();
+    next_arg = 0;
+    printf("       LDA  L%u,R%u\n", f, R_CALL);
+    printf("       STI  R%u,%u(R%u)\n", R_P, tos, R_P);
+    printf("       LDA  %u(R%u),R%u\n", tos, R_P, R_P);
+    printf("       BAL  R%u,R%u\n", R_CALL, R_RET);
 
-        if( res != NULL )                     /* Do a result if there is one */
-                insert_desc( R_RES, res, MODIFIED ) ;
+    if (res != NULL)                     /* Do a result if there is one */
+        insert_desc(R_RES, res, MODIFIED);
 
 }       /* void  cg_call( int   f,
                           SYMB *res ) */
 
 
-void  cg_return( SYMB *a )
+void cg_return(SYMB *a)
 
 /* The standard return sequence is
 
@@ -537,45 +557,43 @@ void  cg_return( SYMB *a )
 */
 
 {
-        if( a != NULL )
-        {
-                spill_one( R_RES ) ;
-                load_reg( R_RES, a ) ;
-        }
+    if (a != NULL) {
+        spill_one(R_RES);
+        load_reg(R_RES, a);
+    }
 
-        printf( "       LDI  %u(R%u),R%u\n", PC_OFF, R_P, R_CALL ) ;
-        printf( "       LDI  %u(R%u),R%u\n", P_OFF, R_P, R_P ) ;
-        printf( "       BAL  R%u,R%u\n", R_CALL, R_RET ) ;
+    printf("       LDI  %u(R%u),R%u\n", PC_OFF, R_P, R_CALL);
+    printf("       LDI  %u(R%u),R%u\n", P_OFF, R_P, R_P);
+    printf("       BAL  R%u,R%u\n", R_CALL, R_RET);
 
 }       /* void  cg_return( SYMB *a ) */
 
 
-void  cg_sys( char *fn )                 /* File name */
+void cg_sys(char *fn)                 /* File name */
 
 /* This routine is used to copy standard header and library files into the
    generated code. */
 
 {
 /*printf("system file = %s\n", fn);*/
-        FILE *fd = fopen( fn, "r" ) ; /* The library file */
-        int  c ;
+    FILE *fd = fopen(fn, "r"); /* The library file */
+    int c;
 
-        if( fd == NULL )
-        {
-                error( "cannot open system file" ) ;
-                error(  fn ) ;
-                exit( 0 ) ;
-        }
+    if (fd == NULL) {
+        error("cannot open system file");
+        error(fn);
+        exit(0);
+    }
 
-        while((c = getc( fd )) != EOF )
-                putchar( c ) ;
+    while ((c = getc(fd)) != EOF)
+        putchar(c);
 
-        fclose( fd ) ;
+    fclose(fd);
 
 }       /* void  cg_sys( char *fn ) */
 
 
-void  cg_strings( void )
+void cg_strings(void)
 
 /* This routine runs through the symbol table at the end of code generation to
    find all the strings, calling "cg_str()" to generate each string as a series
@@ -583,51 +601,50 @@ void  cg_strings( void )
    code. */
 
 {
-        int  i ;
+    int i;
 
-        for( i = 0 ; i < HASHSIZE ; i++)   /* Find all symbol table chains */
-        {
-                SYMB *sl ;
+    for (i = 0; i < HASHSIZE; i++)   /* Find all symbol table chains */
+    {
+        SYMB *sl;
 
-                for( sl = symbtab[i] ; sl != NULL ; sl = sl->next )
-                        if( sl->type == T_TEXT )
-                                cg_str( sl ) ;
+        for (sl = symbtab[i]; sl != NULL; sl = sl->next)
+            if (sl->type == T_TEXT)
+                cg_str(sl);
 
-        }
+    }
 
-        printf( "L0:\n" ) ;
+    printf("L0:\n");
 
 }       /* void  cg_strings( void ) */
 
 
-void  cg_str( SYMB *s )
+void cg_str(SYMB *s)
 
 /* Generate bytes for this string. Ignore the quotes and translate escapes */
 
 {
-        char *t = s->TEXT1 ;             /* The text */
-        int   i ;
+    char *t = s->TEXT1;             /* The text */
+    int i;
 
-        printf( "L%u:\n", s->VAL2 ) ;    /* Label for the string */
+    printf("L%u:\n", s->VAL2);    /* Label for the string */
 
-        for( i = 1 ; t[i + 1] != EOS ; i++ )
-                if( t[i] == '\\' )
-                        switch( t[++i] )
-                        {
-                                case 'n':
+    for (i = 1; t[i + 1] != EOS; i++)
+        if (t[i] == '\\')
+            switch (t[++i]) {
+                case 'n':
 
-                                        printf( "       DB   %u\n", '\n' ) ;
-                                        break ;
+                    printf("       DB   %u\n", '\n');
+                    break;
 
-                                case '\"':
+                case '\"':
 
-                                        printf( "       DB   %u\n", '\"' ) ;
-                                        break ;
-                        }
-                else
-                        printf( "       DB   %u\n", t[i] ) ;
+                    printf("       DB   %u\n", '\"');
+                    break;
+            }
+        else
+            printf("       DB   %u\n", t[i]);
 
-        printf( "       DB   0\n" ) ;    /* End of string */
+    printf("       DB   0\n");    /* End of string */
 
 }       /* void  cg_str( SYMB *s ) */
 
@@ -640,55 +657,54 @@ void  cg_str( SYMB *s )
    write a specific register out if it is modified. */
 
 
-void  flush_all( void )
+void flush_all(void)
 
 /* Spill all registers, and clear their descriptors. Although we don't spill
    the result register (it is only set on a return, and therefore never needs
    saving for future use), we do clear its descriptor! */
 
 {
-        int  r ;
+    int r;
 
-        spill_all() ;
+    spill_all();
 
-        for( r = R_GEN ; r < R_MAX ; r++ )   /* Clear the descriptors */
-                clear_desc( r ) ;
+    for (r = R_GEN; r < R_MAX; r++)   /* Clear the descriptors */
+        clear_desc(r);
 
-        clear_desc( R_RES ) ;                /* Clear result register */
+    clear_desc(R_RES);                /* Clear result register */
 
 }       /* void  flush_all( void ) */
 
 
-void  spill_all( void )
+void spill_all(void)
 
 /* Spill all the registers */
 
 {
-        int  r ;
+    int r;
 
-        for( r = R_GEN ; r < R_MAX ; r++ )
-                spill_one( r ) ;
+    for (r = R_GEN; r < R_MAX; r++)
+        spill_one(r);
 
 }       /* spill_all( void ) */
 
 
-void  spill_one( int  r )
+void spill_one(int r)
 
 /* Spill the value in register r if there is one and it's modifed */
 
 {
-        if( (rdesc[r].name != NULL) && rdesc[r].modified )
-        {
-                printf( "       STI  R%u,%u(R%u)\n", r, rdesc[r].name->ADDR2,
-                        R_P ) ;
-                rdesc[r].modified = UNMODIFIED ;
-        }
+    if ((rdesc[r].name != NULL) && rdesc[r].modified) {
+        printf("       STI  R%u,%u(R%u)\n", r, rdesc[r].name->ADDR2,
+               R_P);
+        rdesc[r].modified = UNMODIFIED;
+    }
 
 }       /* void  spill_one( int  r ) */
 
 
-void  load_reg( int   r,                 /* Register to be loaded */
-                SYMB *n )                /* Name to load */
+void load_reg(int r,                 /* Register to be loaded */
+              SYMB *n)                /* Name to load */
 
 /* "load_reg()" loads a value into a register. If the value is in a different
    register it uses LDR. If it is a constant it uses LDA indexed off R0 and if
@@ -698,39 +714,37 @@ void  load_reg( int   r,                 /* Register to be loaded */
    We update the register descriptor accordingly */
 
 {
-        int  s ;
+    int s;
 
-        /* Look for a register */
+    /* Look for a register */
 
-        for( s = 0 ; s < R_MAX ; s++ )
-                if( rdesc[s].name == n )
-                {
-                        printf( "       LDR  R%u,R%u\n", s, r ) ;
-                        insert_desc( r, n, rdesc[s].modified ) ;
-                        return ;
-                }
+    for (s = 0; s < R_MAX; s++)
+        if (rdesc[s].name == n) {
+            printf("       LDR  R%u,R%u\n", s, r);
+            insert_desc(r, n, rdesc[s].modified);
+            return;
+        }
 
-        /* Not in a reg. Load appropriately */
+    /* Not in a reg. Load appropriately */
 
-        switch( n->type )
-        {
+    switch (n->type) {
         case T_INT:
 
-                printf( "       LDA  %u(R0),R%u\n", n->VAL1, r ) ;
-                break ;
+            printf("       LDA  %u(R0),R%u\n", n->VAL1, r);
+            break;
 
         case T_VAR:
 
-                printf( "       LDI  %u(R%u),R%u\n", n->ADDR2, R_P, r ) ;
-                break ;
+            printf("       LDI  %u(R%u),R%u\n", n->ADDR2, R_P, r);
+            break;
 
         case T_TEXT:
 
-                printf( "       LDA  L%u,R%u\n", n->VAL2, r ) ;
-                break ;
-        }
+            printf("       LDA  L%u,R%u\n", n->VAL2, r);
+            break;
+    }
 
-        insert_desc( r, n, UNMODIFIED ) ;
+    insert_desc(r, n, UNMODIFIED);
 
 }       /* void  load_reg( int   r,
                            SYMB *n ) */
@@ -741,54 +755,51 @@ void  load_reg( int   r,                 /* Register to be loaded */
    information. */
 
 
-void  clear_desc( int   r )              /* Register to delete */
+void clear_desc(int r)              /* Register to delete */
 
 /* Clear the descriptor for register r */
 
 {
-        rdesc[r].name = NULL ;
+    rdesc[r].name = NULL;
 
 }       /* void  clear_desc( int   r ) */
 
 
-void  insert_desc( int   r,
-                   SYMB *n,
-                   int   mod )
+void insert_desc(int r,
+                 SYMB *n,
+                 int mod)
 
 /* Insert a descriptor entry for the given name. First as a precaution delete
    it from any existing descriptor. */
 
 {
-        int  or ;                       /* Old register counter */
+    int or;                       /* Old register counter */
 
-        /* Search through each register in turn looking for "n". There should
-           be at most one of these. */
+    /* Search through each register in turn looking for "n". There should
+       be at most one of these. */
 
-        for( or = R_GEN ; or < R_MAX ; or++ )
-        {
-                if( rdesc[or].name == n )
-                {
-                        /* Found it, clear it and break out of the loop. */
+    for (or = R_GEN; or < R_MAX; or++) {
+        if (rdesc[or].name == n) {
+            /* Found it, clear it and break out of the loop. */
 
-                        clear_desc( or ) ;
-                        break ;
-                }
+            clear_desc(or);
+            break;
+        }
+    }
+
+    /* We should not find any duplicates, but check, just in case. */
+
+    for (or++; or < R_MAX; or++)
+
+        if (rdesc[or].name == n) {
+            error("Duplicate slave found");
+            clear_desc(or);
         }
 
-        /* We should not find any duplicates, but check, just in case. */
+    /* Finally insert the name in the new descriptor */
 
-        for( or++ ; or < R_MAX ; or++ )
-
-                if( rdesc[or].name == n )
-                {
-                        error( "Duplicate slave found" ) ;
-                        clear_desc( or ) ;
-                }
-
-        /* Finally insert the name in the new descriptor */
-
-        rdesc[r].name     = n ;
-        rdesc[r].modified = mod ;
+    rdesc[r].name = n;
+    rdesc[r].modified = mod;
 
 }       /* void  insert_desc( int   r,
                               SYMB *n,
@@ -801,7 +812,7 @@ void  insert_desc( int   r,
    will hold an operand that will no be overwritten. */
 
 
-int  get_rreg( SYMB *c )
+int get_rreg(SYMB *c)
 
 /* Get a register to hold the result of the computation
 
@@ -822,40 +833,39 @@ int  get_rreg( SYMB *c )
    the address and register descriptors. */
 
 {
-        int        r ;                   /* Register for counting */
+    int r;                   /* Register for counting */
 
-        for( r = R_GEN ; r < R_MAX ; r++ )   /* Already in a register */
-                if( rdesc[r].name == c )
-                {
-                        spill_one( r ) ;
-                        return r ;
-                }
+    for (r = R_GEN; r < R_MAX; r++)   /* Already in a register */
+        if (rdesc[r].name == c) {
+            spill_one(r);
+            return r;
+        }
 
-        for( r = R_GEN ; r < R_MAX ; r++ )
-                if( rdesc[r].name == NULL )  /* Empty register */
-                {
-                        load_reg( r, c ) ;
-                        return r ;
-                }
+    for (r = R_GEN; r < R_MAX; r++)
+        if (rdesc[r].name == NULL)  /* Empty register */
+        {
+            load_reg(r, c);
+            return r;
+        }
 
-        for( r = R_GEN ; r < R_MAX ; r++ )
-                if( !rdesc[r].modified )     /* Unmodifed register */
-                {
-                        clear_desc( r ) ;
-                        load_reg( r, c ) ;
-                        return r ;
-                }
+    for (r = R_GEN; r < R_MAX; r++)
+        if (!rdesc[r].modified)     /* Unmodifed register */
+        {
+            clear_desc(r);
+            load_reg(r, c);
+            return r;
+        }
 
-        spill_one( R_GEN ) ;                 /* Modified register */
-        clear_desc( R_GEN ) ;
-        load_reg( R_GEN, c ) ;
-        return R_GEN ;
+    spill_one(R_GEN);                 /* Modified register */
+    clear_desc(R_GEN);
+    load_reg(R_GEN, c);
+    return R_GEN;
 
 }       /* int  get_rreg( SYMB *c ) */
 
 
-int  get_areg( SYMB *b,
-               int   cr )                /* Register already holding b */
+int get_areg(SYMB *b,
+             int cr)                /* Register already holding b */
 
 /* Get a register to hold the second argument of the computation
 
@@ -874,35 +884,35 @@ int  get_areg( SYMB *b,
    registers. We may not use cr unless it already contains b. */
 
 {
-        int        r ;                   /* Register for counting */
+    int r;                   /* Register for counting */
 
-        for( r = R_ZERO ; r < R_MAX ; r++ )
-                if( rdesc[r].name == b )              /* Already in register */
-                        return r ;
+    for (r = R_ZERO; r < R_MAX; r++)
+        if (rdesc[r].name == b)              /* Already in register */
+            return r;
 
-        for( r = R_GEN ; r < R_MAX ; r++ )
-                if( rdesc[r].name == NULL )           /* Empty register */
-                {
-                        load_reg( r, b ) ;
-                        return r ;
-                }
+    for (r = R_GEN; r < R_MAX; r++)
+        if (rdesc[r].name == NULL)           /* Empty register */
+        {
+            load_reg(r, b);
+            return r;
+        }
 
-        for( r = R_GEN ; r < R_MAX ; r++ )
-                if( !rdesc[r].modified && (r != cr))  /* Unmodifed register */
-                {
-                        clear_desc( r ) ;
-                        load_reg( r, b ) ;
-                        return r ;
-                }
+    for (r = R_GEN; r < R_MAX; r++)
+        if (!rdesc[r].modified && (r != cr))  /* Unmodifed register */
+        {
+            clear_desc(r);
+            load_reg(r, b);
+            return r;
+        }
 
-        for( r = R_GEN ; r < R_MAX ; r++ )
-                if( r != cr )                          /* Modified register */
-                {
-                        spill_one( r ) ;
-                        clear_desc( r ) ;
-                        load_reg( r, b ) ;
-                        return r ;
-                }
+    for (r = R_GEN; r < R_MAX; r++)
+        if (r != cr)                          /* Modified register */
+        {
+            spill_one(r);
+            clear_desc(r);
+            load_reg(r, b);
+            return r;
+        }
 
 }       /* int  get_areg( SYMB *b,
                           int   cr ) */
