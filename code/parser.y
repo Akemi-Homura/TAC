@@ -468,6 +468,12 @@ TAC *do_func( SYMB *func,                        /* Function */
            used before, so backpatch the address into the call opcodes. If
            declared already we have a semantic error and give up. Otherwise
            patch in the addresses and declare as a function */
+        SYMB *t;
+        if( (t = lookup(func->TEXT1,symbtab)) != NULL){
+            func = t;
+        }else{
+            insert(func,symbtab);
+        }
 
         if( func->type != T_UNDEF )
         {
@@ -697,6 +703,12 @@ ENODE *do_fnap( SYMB  *func,             /* Function to call */
            T_UNDEF or T_FUNC. If it is declare the result, run down the
            argument list, joining up the code for each argument, then generate
            a sequence of arg instructions and finally a call instruction */
+        SYMB *t;
+        if( (t = lookup(func->TEXT1,symbtab)) != NULL){
+            func = t;
+        }else{
+            insert(func,symbtab);
+        }
 
         if(( func->type != T_UNDEF ) && ( func->type != T_FUNC ))
         {
@@ -767,6 +779,7 @@ TAC *do_if( ENODE *expr,                 /* Condition */
    will appear as labels in the resulting TAC code. */
 
 {
+        
         TAC *label = mktac( TAC_LABEL, mklabel( next_label++ ), NULL, NULL ) ;
         TAC *code  = mktac( TAC_IFZ, (SYMB *)label, expr->res, NULL ) ;
 
