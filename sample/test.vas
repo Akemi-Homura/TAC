@@ -4,54 +4,56 @@
        var r
        var e
        
-L15:
+L16:
        beginfunc
        var i
        var j
        j := 1
        i := 0
+       arg L10
+       call L4
        
-L13:
+L14:
        var T0
        T0 := 11 - i
-       ifz T0 goto L14
-       arg L10
+       ifz T0 goto L15
+       arg L11
        call L4
        arg i
        call L2
-       arg L11
+       arg L12
        call L4
        var T1
        arg i
-       T1 = call L18
+       T1 = call L19
        arg T1
        call L2
-       arg L12
+       arg L13
        call L4
        var T2
        T2 := i + 1
        i := T2
-       goto L13
+       goto L14
        
-L14:
+L15:
        endfunc
        
-L18:
+L19:
        beginfunc
        var n
-       ifz n goto L16
+       ifz n goto L17
        var T4
        var T3
        T3 := n - 1
        arg T3
-       T4 = call L18
+       T4 = call L19
        var T5
        T5 := n * T4
        return T5
-       goto L17
-       
-L16:
-       return 1
+       goto L18
        
 L17:
+       return 1
+       
+L18:
        endfunc

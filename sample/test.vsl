@@ -9,6 +9,7 @@ FUNC  main()
     VAR j
     j := 1
     i := 0
+    PRINT "i"
 
     WHILE 11 - i
     DO

@@ -2,13 +2,13 @@
 *******************************************************************************
 
 
-          HH    HH  EEEEEEEE    AAAA    DDDDDD    EEEEEEEE  RRRRRRR 
+          HH    HH  EEEEEEEE    AAAA    DDDDDD    EEEEEEEE  RRRRRRR
           HH    HH  EEEEEEEE   AAAAAA   DDDDDDD   EEEEEEEE  RRRRRRRR
           HH    HH  EE        AA    AA  DD    DD  EE        RR    RR
           HHHHHHHH  EEEEEE    AAAAAAAA  DD    DD  EEEEEE    RRRRRRRR
-          HH    HH  EE        AA    AA  DD    DD  EE        RRRRRRR 
-          HH    HH  EE        AA    AA  DD    DD  EE        RR  RR  
-          HH    HH  EEEEEEEE  AA    AA  DDDDDDD   EEEEEEEE  RR   RR 
+          HH    HH  EE        AA    AA  DD    DD  EE        RRRRRRR
+          HH    HH  EE        AA    AA  DD    DD  EE        RR  RR
+          HH    HH  EEEEEEEE  AA    AA  DDDDDDD   EEEEEEEE  RR   RR
           HH    HH  EEEEEEEE  AA    AA  DDDDDD    EEEEEEEE  RR    RR
 
 
@@ -52,7 +52,7 @@
 
 /* We define constants for each of the three address code (TAC) instructions.
    For convenience we have an undefined instruction, then we specify the 12
-   main TAC opcodes. */ 
+   main TAC opcodes. */
 
 #define  TAC_UNDEF    0                  /* TAC instructions */
 #define  TAC_ADD      1                  /* a := b + c */
@@ -83,7 +83,7 @@
 /* The library routines are supplied in an external file. Their entry points
    are held in a table, and we define the offsets in this table here as
    LIB_PRINTN and LIB_PRINTS. At present these are the only two library
-   routines, used to print out numbers and strings in PRINT statements. 
+   routines, used to print out numbers and strings in PRINT statements.
 
    The book assumes that the code generator library and header files are in the
    same directory as the compiler. For greater flexibility we #define a library
@@ -95,8 +95,8 @@
 #define  LIB_MAX        2
 
 /* #define  LIB_DIR  "/jeremy/book/code/"   */ /* Library directory */
-/* place the files: lib header in the library directory 
- * change the value of LIB_DIR for the vc compiler to find the 
+/* place the files: lib header in the library directory
+ * change the value of LIB_DIR for the vc compiler to find the
  * header and lib statically. The '/' as the end of LIB_DIR is MUST
  * */
 #define  LIB_DIR  "../lib/"  /* Library directory */
@@ -205,6 +205,7 @@ typedef struct enode                     /* Parser expression */
 
 extern SYMB *symbtab[HASHSIZE] ;         /* Symbol table */
 extern SYMB *local_symbtab[HASHSIZE] ;
+extern SYMB *strtab[HASHSIZE] ;
 extern TAC  *library[LIB_MAX] ;          /* Entries for library routines */
 extern int   next_tmp ;                  /* Count of temporaries */
 extern int   next_label ;                /* Count of labels */
